@@ -61,7 +61,7 @@ void howTo() {
 
 int ChooseAceValue(int score) {
     Console::SetCursorPosition(55, 26);
-    cout << "Que valor quieres para tu as? (1 or 11): " << endl << 
+    cout << "Que valor quieres para tu as? (1 or 11): " << endl <<
         "Advertencia: El valor que elijas ahora será utilizado por el resto de tu turno.";
     int ace_value;
     cin >> ace_value;
@@ -76,11 +76,11 @@ int ChooseAceValue(int score) {
         cout << "Debes elegir el valor de 1 o perderás automaticamente." << endl;
         ace_value = 1;
     }
-    
+
     return ace_value;
 }
 
-void playerSetup(
+int playerSetup(
     const char* name,
     int posPlayerNameX,
     int posPlayerNameY,
@@ -93,7 +93,7 @@ void playerSetup(
     int posPlayerScoreX,
     int posPlayerScoreY) {
 
-    int firstCard, secondCard, score;
+    int firstCard, secondCard, score, buffer, answerExtra;
     Console::SetCursorPosition(posPlayerNameX, posPlayerNameY);
     cout << name;
 
@@ -113,31 +113,95 @@ void playerSetup(
     if (secondCard == 11 || secondCard == 12 || secondCard == 13) {
         secondCard = 10;
     }
+
     score = firstCard + secondCard;
+
     Console::SetCursorPosition(posPlayerScoreX, posPlayerScoreY);
-    if (firstCard == 1 || secondCard == 1) {
-        score+= ChooseAceValue(score); 
-        cout << "Total: " << score;
-        
+
+    if (firstCard == 1) {
+        int newValue = ChooseAceValue(firstCard);
+        score = (score - 1) + newValue;
     }
+
+    if (secondCard == 1) {
+        int newValue = ChooseAceValue(secondCard);
+        score = (score - 1) + newValue;
+    }
+
     else
     {
         cout << "Total:" << score;
     }
-    
+
+    if (score == 21) {
+        cout << "Felicidades " << name << endl;
+        return 21;
     }
+    else {
+        while (score <= 21){
+            cout << "¿Deseas una carta extra? (1 = Si, 0 = no) "; cin >> answerExtra;
+            if (answerExtra == 1) { // la pide EVALUA
+                Console::SetCursorPosition(50, 25);
+                buffer = rand() % 13 + 1;
+                cout << "Obteniste un " << buffer << endl;
+                score += buffer;
+                Console::SetCursorPosition(posPlayerScoreX, posPlayerScoreY);
+                cout << "Total:" << score;
+            }
+            else if(answerExtra == 0) {
+                return score;
+            }
+            else if (score >= 21) {
+                Console::SetCursorPosition(50, 23);
+                cout << "Perdiste " << name;
+                return 0;
+            }
+            
+        }
+            return score;
+        }
+    }
+
+
+
+
+
 
 void mainGame(int rounds) {
     int posPlayer1NameX = 4, posPlayer2NameX = 52, posPlayersNameY = 7;
     int posPlayer1Card1X = 5, posPlayer2Card1X = 50, posPlayer1Card2X = 19, posPlayer2Card2X = 66, posCardsY = 9;
     int posPlayer1Card1NumberX = 7, posPlayer2Card1NumberX = 52, posPlayer1Card2Numberx = 21, posPlayer2Card2Numberx = 68, posPlayerCardNumberY = 12;
     int posPlayer1ScoreX = 11, posPlayer2ScoreX = 55, posPlayerScoreY = 20;
-    Dibujar_horario(0, 0, 119, 29, 0);
+
+    int player1Score = 0, player2Score = 0;
+
+    
     Console::SetCursorPosition(42, 12);
     for (int i = 0; i < rounds; i++) {
-        playerSetup("Jugador 1", posPlayer1NameX, posPlayersNameY, posPlayer1Card1X, posPlayer1Card2X, posCardsY, posPlayer1Card1NumberX, posPlayer1Card2Numberx, posPlayerCardNumberY, posPlayer1ScoreX, posPlayerScoreY);
-        playerSetup("Jugador 2", posPlayer2NameX, posPlayersNameY, posPlayer2Card1X, posPlayer2Card2X, posCardsY, posPlayer2Card1NumberX, posPlayer2Card2Numberx, posPlayerCardNumberY, posPlayer2ScoreX, posPlayerScoreY);
+        Dibujar_horario(0, 0, 119, 29, 0);
+        player1Score = playerSetup("Jugador 1", posPlayer1NameX, posPlayersNameY, posPlayer1Card1X, posPlayer1Card2X, posCardsY, posPlayer1Card1NumberX, posPlayer1Card2Numberx, posPlayerCardNumberY, posPlayer1ScoreX, posPlayerScoreY);
+        player2Score = playerSetup("Jugador 2", posPlayer2NameX, posPlayersNameY, posPlayer2Card1X, posPlayer2Card2X, posCardsY, posPlayer2Card1NumberX, posPlayer2Card2Numberx, posPlayerCardNumberY, posPlayer2ScoreX, posPlayerScoreY);
+
+        if (player1Score == player2Score) {
+            //empate
+            player1Score += 1;
+            player2Score += 1;
+            Console::SetCursorPosition(52, 25);
+            cout << "Empate";
+        }
+        if (player1Score > player2Score) {
+            player1Score += 1;
+            Console::SetCursorPosition(52, 25);
+            cout << "Gano Jugador 1";
+        }
+        if (player2Score > player1Score) {
+            player2Score += 1;
+            Console::SetCursorPosition(52, 25);
+            cout << "Gano Jugador 2";
+        }
+
         system("pause");
+        system("cls");
     }
 }
 
@@ -152,7 +216,7 @@ void gameStart() {
     cout << "Ingrese la cantidad de rondas que desean jugar: ";
     cin >> rounds;
     system("cls");
-    if (rounds <= 4 || rounds >= 10) {
+    if (rounds <= 4 || rounds >= 11) {
         gameStart();
     }
     else {
